@@ -62,10 +62,6 @@ jobs:
         run: |
           pwd
           ls -la
-          infracost breakdown --path=terraform \
-                              --format=json \
-                              --out-file=/tmp/infracost-base.json \
-                              --terraform-force-cli
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
