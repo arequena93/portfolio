@@ -68,10 +68,8 @@ jobs:
       # Generate an Infracost diff and save it to a JSON file.
       - name: Generate Infracost diff
         run: |
-          pwd
-          ls -la
-          infracost diff --path=portfolio/terraform \
-                        --format=json \
+          cd terraform
+          infracost diff --format=json \
                         --compare-to=/tmp/infracost-base.json \
                      --out-file=/tmp/infracost.json
           infracost output --path /tmp/infracost.json --format table --out-file /tmp/report.table
