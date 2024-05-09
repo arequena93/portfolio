@@ -17,12 +17,10 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          path: .
 
       - name: Check dir
         run:
-          cd .. && ls -la && cd .. && ls -la
+          cd portfolio && ls -la
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.3
