@@ -33,7 +33,7 @@ jobs:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
       - name: Terraform Init
-        run: terraform init -input=false -reconfigure
+        run: ls -la && terraform init -input=false -reconfigure
 
       - name: Terraform Plan
         id: plan
