@@ -20,7 +20,7 @@ jobs:
 
       - name: Check dir
         run:
-          cd portfolio && ls -la
+          ls -la
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.3
