@@ -56,10 +56,11 @@ jobs:
         id: infracost-baseline
         run: |
           pwd
-          infracost breakdown --path=portfolio/terraform \
-                      --format=json \
-                      --out-file=/tmp/infracost-base.json \
-                      --terraform-force-cli
+          ls -la
+        # infracost breakdown --path=portfolio/terraform \
+        #              --format=json \
+        #              --out-file=/tmp/infracost-base.json \
+        #              --terraform-force-cli
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
