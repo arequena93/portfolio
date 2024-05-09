@@ -18,6 +18,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Check dir
+        run:
+          pwd
+          ls -la
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2.0.3
         with:
@@ -30,55 +35,56 @@ jobs:
         with:
           api-key: ${{ secrets.INFRACOST_API_KEY }}
 
-      - name: Terraform Init
-        run: terraform init -input=false -reconfigure
+      #- name: Terraform Init
+      #  run: terraform init -input=false -reconfigure
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -out workspace.plan
-        continue-on-error: true
+        #- name: Terraform Plan
+        #id: plan
+        #run: terraform plan -no-color -out workspace.plan
+        #continue-on-error: true
 
-      - name: Post Plan
-        uses: robburger/terraform-pr-commenter@v1
-        with:
-          commenter_type: plan
-          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
-          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+        #- name: Post Plan
+        #uses: robburger/terraform-pr-commenter@v1
+          #with:
+          #commenter_type: plan
+          #commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
+          #commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
 
       # infracost
 
       # # Checkout the base branch of the pull request (e.g. main/master).
-      - name: Checkout base branch
-        uses: actions/checkout@v4
-        with:
-          ref: '${{ github.event.pull_request.base.ref }}'
+        #- name: Checkout base branch
+        #uses: actions/checkout@v4
+          #with:
+          #ref: '${{ github.event.pull_request.base.ref }}'
 
       # Generate Infracost JSON file as the baseline.
-      - name: Generate Infracost cost estimate baseline
-        id: infracost-baseline
-        run: |
-          pwd
-          ls -la
+        #- name: Generate Infracost cost estimate baseline
+        #id: infracost-baseline
+          #run: |
+          #pwd
+          #ls -la
 
       # Checkout the current PR branch so we can create a diff.
-      - name: Checkout PR branch
-        uses: actions/checkout@v4
+        #- name: Checkout PR branch
+        #uses: actions/checkout@v4
 
       # Generate an Infracost diff and save it to a JSON file.
-      - name: Generate Infracost diff
-        run: |
-          infracost diff --path=${{ env.WORKING_DIR }} \
-                          --format=json \
-                          --compare-to=/tmp/infracost-base.json \
-                          --out-file=/tmp/infracost.json
-          infracost output --path /tmp/infracost.json --format table --out-file /tmp/report.table
-          cat /tmp/report.table
+        #- name: Generate Infracost diff
+          #run: |
+            #infracost diff --path=${{ env.WORKING_DIR }} \
+            #              --format=json \
+            #              --compare-to=/tmp/infracost-base.json \
+          #             --out-file=/tmp/infracost.json
+          #infracost output --path /tmp/infracost.json --format table --out-file /tmp/report.table
+          #cat /tmp/report.table
 
       #Post comment
-      - name: Post Infracost comment
-        run: |
-          infracost comment github --path /tmp/infracost.json \
-                                    --repo $GITHUB_REPOSITORY  \
-                                    --github-token ${{ secrets.GITHUB_TOKEN }} \
-                                    --pull-request ${{ github.event.pull_request.number }} \
-                                    --behavior update
+        #- name: Post Infracost comment
+          #run: |
+            #infracost comment github --path /tmp/infracost.json \
+            #                       --repo $GITHUB_REPOSITORY  \
+            #                        --github-token ${{ secrets.GITHUB_TOKEN }} \
+            #                        --pull-request ${{ github.event.pull_request.number }} \
+            #                        --pull-request ${{ github.event.pull_request.number }} \
+          #                        --behavior update
