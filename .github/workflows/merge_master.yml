@@ -1,4 +1,4 @@
-name: 'Terraform Apply and Deploy on Merge'
+name: 'Terraform Apply and Deploy on Merge PR'
 
 on:
   push:
