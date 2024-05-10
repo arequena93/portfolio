@@ -1,0 +1,94 @@
+name: 'Terraform Plan on PR'
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+env:
+  TF_VERSION: 1.3.7
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  terraform_plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2.0.3
+        with:
+          terraform_version: $TF_VERSION
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Terraform Init
+        run: cd terraform && terraform init -input=false -reconfigure
+
+      - name: Terraform Plan
+        id: plan
+        run: cd terraform && terraform plan -no-color -out workspace.plan
+        continue-on-error: true
+
+      - name: Post Plan
+        uses: robburger/terraform-pr-commenter@v1
+        with:
+          commenter_type: plan
+          commenter_input: ${{ format('{0}{1}', steps.plan.outputs.stdout, steps.plan.outputs.stderr) }}
+          commenter_exitcode: ${{ steps.plan.outputs.exitcode }}
+
+      # infracost
+
+      # Checkout the base branch of the pull request (e.g. main/master).
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: '${{ github.event.pull_request.base.ref }}'
+
+      - name: Terraform Plan for Infracost
+        run: |
+          cd terraform
+          terraform init -input=false -reconfigure
+          terraform plan -out=tfplan.binary
+          terraform show -json tfplan.binary > tfplan.json
+
+      # Generate Infracost JSON file as the baseline.
+      - name: Generate Infracost cost estimate baseline
+        id: infracost-baseline
+        run: |
+          cd terraform
+          infracost breakdown --path=tfplan.json \
+                      --format=json \
+                      --out-file=/tmp/infracost-base.json \
+                      --terraform-force-cli
+          cat /tmp/infracost-base.json
+
+      # Checkout the current PR branch so we can create a diff.
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      # Generate an Infracost diff and save it to a JSON file.
+      - name: Generate Infracost diff
+        run: |
+          infracost diff --path=terraform \
+                        --format=json \
+                        --compare-to=/tmp/infracost-base.json \
+                     --out-file=/tmp/infracost.json
+          infracost output --path /tmp/infracost.json --format table --out-file /tmp/report.table
+          cat /tmp/report.table
+
+      #Post comment
+      - name: Post Infracost comment
+        run: |
+          infracost comment github --path /tmp/infracost.json \
+                                 --repo $GITHUB_REPOSITORY  \
+                                  --github-token ${{ secrets.GITHUB_TOKEN }} \
+                                  --pull-request ${{ github.event.pull_request.number }} \
+                                  --pull-request ${{ github.event.pull_request.number }} \
+                                --behavior update
