@@ -51,11 +51,17 @@ jobs:
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
+      - name: Terraform Plan for Infracost
+        run: cd terraform && terraform plan -out=tfplan.binary
+
+      - name: Convert Terraform Plan to JSON
+        run: cd terraform && terraform show -json tfplan.binary > tfplan.json
+
       # Generate Infracost JSON file as the baseline.
       - name: Generate Infracost cost estimate baseline
         id: infracost-baseline
         run: |
-         infracost breakdown --path=terraform \
+         infracost breakdown --path=tfplan.json \
                       --format=json \
                       --out-file=/tmp/infracost-base.json \
                       --terraform-force-cli
