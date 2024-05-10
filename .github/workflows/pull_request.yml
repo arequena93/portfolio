@@ -59,6 +59,7 @@ jobs:
                       --format=json \
                       --out-file=/tmp/infracost-base.json \
                       --terraform-force-cli
+          cat /tmp/infracost-base.json
 
       # Checkout the current PR branch so we can create a diff.
       - name: Checkout PR branch
