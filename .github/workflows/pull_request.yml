@@ -62,7 +62,10 @@ jobs:
       - name: Generate Infracost cost estimate baseline
         id: infracost-baseline
         run: |
-         infracost breakdown --path=tfplan.json \
+          ls -la
+          cd terraform
+          ls -la
+          infracost breakdown --path=terraform/tfplan.json \
                       --format=json \
                       --out-file=/tmp/infracost-base.json \
                       --terraform-force-cli
